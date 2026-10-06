@@ -177,11 +177,25 @@ COCO 2017: около 118 тысяч картинок на обучении и 5
 
 Видео 1546×1212, 30 кадров. Класс dog на всех 6 ключевых кадрах, максимум 0,997. Файл `outputs/dog_detected.mp4` открывается, в нём те же 30 кадров.
 
-## 8. Что из этого пойдёт в API
+## 8. API и тесты
 
-Под следующий этап оставлена тональность. Функция `analyze_sentiment` принимает список строк и возвращает словарь с меткой и распределением. Пустая строка даёт ошибку, её можно будет отдать клиенту как неверный запрос.
+Группа 11-411, Игнатьев Арсений и Николаева Полина. Вторая часть делалась той же командой.
 
-Видео в этот же интерфейс лучше не ставить: на CPU кадр считается около полутора секунд, длинный ролик в синхронном запросе будет висеть.
+Разделение такое. Игнатьев Арсений собрал HTTP-сервис: файл `main.py`, запрос и ответ через pydantic, вызов уже написанной `analyze_sentiment`. Николаева Полина написала тесты в `tests/test_api.py` и файл `.github/workflows/tests.yml`, чтобы pytest запускался при push. Запуск сервиса и тестов смотрели вдвоём. На API ушло больше времени у Игнатьева, на тесты и Actions — у Николаевой.
+
+В API вынесена только тональность. На вход одна непустая строка, на выход метка, русское название и вероятность. Пустая строка не проходит проверку схемы, ответ 422. Видео и звук в этот сервис не ставились: там файлы и заметно большее время ответа.
+
+Запуск локально:
+
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn main:app --reload
+```
+
+Проверка: `POST /predict/` с полем `text`. Корень `GET /` отвечает, что сервис жив.
+
+Тесты повторяют три фразы из прогона первой части и отдельно проверяют пустой текст. Для них ставится pytest и httpx, они дописаны в `requirements.txt` рядом с fastapi и uvicorn.
+
+На GitHub Actions тесты стартуют при каждом push. В рабочем окружении ставятся библиотеки самого API (FastAPI, transformers, CPU-сборка PyTorch, pytest). TensorFlow и OpenCV для этих тестов не нужны.
 
 ## 9. Вывод
 
@@ -202,3 +216,8 @@ COCO 2017: около 118 тысяч картинок на обучении и 5
 9. Giannakis M., Dubey R., Yan S. et al. Social media and sensemaking patterns in new product development. https://doi.org/10.1007/s10479-020-03775-6
 10. Пример репозитория с тональностью: https://github.com/sozykin/ml_sentiment
 11. Hugging Face Course. https://huggingface.co/course/
+12. FastAPI, руководство. https://fastapi.tiangolo.com/tutorial/
+13. Тестирование в FastAPI. https://fastapi.tiangolo.com/tutorial/testing/
+14. PyTest. https://docs.pytest.org/
+15. GitHub Actions. https://docs.github.com/en/actions
+16. Пример тестов к API: https://github.com/sozykin/ml_fastapi_tests
